@@ -17,7 +17,7 @@ TMP_FORMAT = 'tmp%05d.jpg'
 import cv2
 import numpy as np
 import transfer
-
+import adaptive
 
     
 
@@ -30,7 +30,7 @@ gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
 gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19,5) #맨 뒤 주변부 보는 영역, 임계값
 blurred = cv2.bilateralFilter(gray, -1,10,5)
 # blurred=cv2.GaussianBlur(gray,(3,3),0)  #(5,5) is the kernel size and 0 is sigma that determines the amount of blur
-cv2.imshow("Blur",blurred)
+# cv2.imshow("Blur",blurred)
 
 edged=cv2.Canny(blurred,10,100)  # 선으로 표현하기...
 
@@ -50,7 +50,7 @@ for c in contours:
         target=approx
         break
 
-cv2.imshow("Canny",edged)
+# cv2.imshow("Canny",edged)
 
 approx=transfer.transfer(target) # 점 4개의 좌표 가져감 
 
@@ -58,9 +58,10 @@ pts=np.float32([[0,0],[800,0],[800,800],[0,800]])  #map to 800*800 target window
 
 op=cv2.getPerspectiveTransform(approx,pts)  #get the top or bird eye view effect
 dst=cv2.warpPerspective(orig,op,(800,800))
-
-
-cv2.imshow("Scanned",dst)
+cv2.imshow("Scan",dst)
+dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY) 
+dst_gray = adaptive.adaptive(dst_gray)
+cv2.imshow("Scanned",dst_gray)
 # press q or Esc to close
 cv2.waitKey(0)
 cv2.destroyAllWindows()

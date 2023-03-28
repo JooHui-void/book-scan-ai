@@ -106,8 +106,15 @@ for line in lines:
     # 검출된 선 그리기 ---
     # print(line[0])
     x1, y1, x2, y2 = line[0]
-    rad = math.atan2(x2-x1,y2-y1)
-    cv2.line(image, (x1,y1), (x2, y2), (0,255,0), 1)
+#     a,b = cal(x1,y1, x2, y2)
+#     if( a == math.inf or a == -math.inf):
+#         cv2.line(image, (x1,0),(x1, h),(255,0,0),1)
+
+#     else :
+        
+#         cv2.line(image, (0,int(b)),(int(w), int(a*w+b)),(255,0,0),1)  
+
+    cv2.line(image, (x1,y1), (x2, y2), (0,255,0), 1) #연장 안하고 그리기
     
 
     
