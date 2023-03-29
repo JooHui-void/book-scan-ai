@@ -35,78 +35,90 @@ h, w = image.shape[:2]
 orig=image.copy()
 
 gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY) 
+# gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 5,5) #맨 뒤 주변부 보는 영역, 임계값
+blurred=cv2.GaussianBlur(gray,(15,15),0)  #(5,5) is the kernel size and 0 is sigma that determines the amount of blur
 
-gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 5,5) #맨 뒤 주변부 보는 영역, 임계값
-blurred = cv2.bilateralFilter(gray, -1,10,5)
-# blurred=cv2.GaussianBlur(gray,(3,3),0)  #(5,5) is the kernel size and 0 is sigma that determines the amount of blur
+blurred = cv2.bilateralFilter(blurred, -1,10,5) #에지가 아닌 부분만 blurring 
+cv2.imshow("blur2", blurred)
 
 
-edged=cv2.Canny(blurred,800,800)  # 선으로 표현하기... threshold 둘다 값이 클수록 엣지 검출 어려움
+edged=cv2.Canny(blurred,50,50)  # 선으로 표현하기... threshold 둘다 값이 클수록 엣지 검출 어려움
 cv2.imshow("Blur",edged)
+
+#### 모폴로지 연산
+k = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+# mor = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, k)
+mor = cv2.dilate(edged, k)
+mor = cv2.erode(mor, k)
+
+cv2.imshow("mor", mor)
+
+
 edging = edged.copy()
 
 # cv2.HoughLinesP(찾을 이미지, 거리측정 해상도 1, 각도, 직선판단정확도, None, 최소길이,최대간격)
-lines = cv2.HoughLinesP(edged, 1, np.pi/180, 10, None, 10, 2) #확률적 변환
+lines = cv2.HoughLinesP(mor, 1, np.pi/1800, 50, None, 100, 10) #확률적 변환
+
 
 
 
 # 라인 병합 알고리즘
 chk = 0
 
-while(True):
+# while(True):
           
-    if(chk == len(lines)):
-        break
+#     if(chk == len(lines)):
+#         break
     
-    x1, y1, x2, y2 = lines[chk][0]
-#     #################### 연장하기 
-    a1,b1 = cal(x1,y1, x2, y2)
-    if( a1 == math.inf or a1 == -math.inf):
-        #cv2.line(image, (x1,0),(x1, h),(255,0,0),1)
-        intercept_x1, intercept_y1 = x1,0
-        intercept_x2, intercept_y2 = x1, h
-    else :
-        #cv2.line(image, (0,int(b)),(int(w), int(a*w+b)),(255,0,0),1)  
-        intercept_x1, intercept_y1 = 0,int(b1)
-        intercept_x2, intercept_y2 = int(w), int(a1*w+b1)
+#     x1, y1, x2, y2 = lines[chk][0]
+# #     #################### 연장하기 
+#     a1,b1 = cal(x1,y1, x2, y2)
+#     if( a1 == math.inf or a1 == -math.inf):
+#         #cv2.line(image, (x1,0),(x1, h),(255,0,0),1)
+#         intercept_x1, intercept_y1 = x1,0
+#         intercept_x2, intercept_y2 = x1, h
+#     else :
+#         #cv2.line(image, (0,int(b)),(int(w), int(a*w+b)),(255,0,0),1)  
+#         intercept_x1, intercept_y1 = 0,int(b1)
+#         intercept_x2, intercept_y2 = int(w), int(a1*w+b1)
 
-    # print(rad)
-    lines2 = lines[:chk+1,:,:].copy()
+#     # print(rad)
+#     lines2 = lines[:chk+1,:,:].copy()
 
-    for idx in range(chk+1, len(lines)):
+#     for idx in range(chk+1, len(lines)):
         
-        xx1, yy1, xx2, yy2 = lines[idx][0]
-        if(abs(xx1-xx2)<5 and abs(yy1-yy2)<5):  # 너무 짧은 직선은 제외시킴
-            continue
-     #################### 연장하기 
-        a2,b2 = cal(xx1,yy1, xx2, yy2)
-        if( a2 == math.inf or a2 == -math.inf):
-            #cv2.line(image, (x1,0),(x1, h),(255,0,0),1)
-            intercept_xx1, intercept_yy1 = xx1,0
-            intercept_xx2, intercept_yy2 = xx1, h
-        else :
-            #cv2.line(image, (0,int(b)),(int(w), int(a*w+b)),(255,0,0),1)  
-            intercept_xx1, intercept_yy1 = 0,int(b2)
-            intercept_xx2, intercept_yy2 = int(w), int(a2*w+b2)
+#         xx1, yy1, xx2, yy2 = lines[idx][0]
+#         if(abs(xx1-xx2)<5 and abs(yy1-yy2)<5):  # 너무 짧은 직선은 제외시킴
+#             continue
+#      #################### 연장하기 
+#         a2,b2 = cal(xx1,yy1, xx2, yy2)
+#         if( a2 == math.inf or a2 == -math.inf):
+#             #cv2.line(image, (x1,0),(x1, h),(255,0,0),1)
+#             intercept_xx1, intercept_yy1 = xx1,0
+#             intercept_xx2, intercept_yy2 = xx1, h
+#         else :
+#             #cv2.line(image, (0,int(b)),(int(w), int(a*w+b)),(255,0,0),1)  
+#             intercept_xx1, intercept_yy1 = 0,int(b2)
+#             intercept_xx2, intercept_yy2 = int(w), int(a2*w+b2)
  
-        if(a1==a2 and abs(intercept_xx1-intercept_x1)<20 and abs(intercept_xx2-intercept_x2)<20 and abs(intercept_yy1-intercept_y1)<20 and abs(intercept_yy2-intercept_y2)<20):
-            # 병합하기
-            # 일단 그냥 뒤에 드롭
-            continue
-        else:
-            lines2 = np.append(lines2, np.reshape(lines[idx],(1,1,4)), 0)
+#         if(a1==a2 and abs(intercept_xx1-intercept_x1)<20 and abs(intercept_xx2-intercept_x2)<20 and abs(intercept_yy1-intercept_y1)<20 and abs(intercept_yy2-intercept_y2)<20):
+#             # 병합하기
+#             # 일단 그냥 뒤에 드롭
+#             continue
+#         else:
+#             lines2 = np.append(lines2, np.reshape(lines[idx],(1,1,4)), 0)
             
-    lines = lines2
-    chk+=1
+#     lines = lines2
+#     chk+=1
  
        
-   
+print(lines.shape)
                
 for line in lines:
     # 검출된 선 그리기 ---
     # print(line[0])
     x1, y1, x2, y2 = line[0]
-#     a,b = cal(x1,y1, x2, y2)
+    a,b = cal(x1,y1, x2, y2)
 #     if( a == math.inf or a == -math.inf):
 #         cv2.line(image, (x1,0),(x1, h),(255,0,0),1)
 
