@@ -101,21 +101,25 @@ for index in range(0, len(lines)):
     
     vertical = np.empty((0,4))
     horizontal = np.empty((0,4))
-    
+    print(x1,y1,x2,y2)
 
     for idx in range(index+1, len(lines)):
         xx1, yy1, xx2, yy2 = lines[idx][0]
         rad2 = math.atan2(xx2-xx1, yy2-yy1)
         rad2 = math.degrees(rad2)
-        
-        if(abs(rad2 - rad)<100 and abs(rad2 - rad) > 80): # 수직 선분 
+        # print("---",xx1,yy1,xx2,yy1,"=>",abs(rad2-rad))
+        if(abs(rad2 - rad)<110 and abs(rad2 - rad) > 70): # 수직 선분 
             if(len(vertical) <2 ):
                 vertical = np.append(vertical,lines[idx], 0)
-                
-        elif(abs(rad2 - rad)<7 or abs(rad2 - rad) >173): # 평행 선분 
+               
+        elif(abs(rad2 - rad)<10 or abs(rad2 - rad) >170): # 평행 선분 
             if(len(horizontal) ==0 ):
                 horizontal = np.append(horizontal,lines[idx], 0)
-        
+            else:  # 이미 들어온 선분과 비교
+                gap1 = abs(x1 - horizontal[0][0])
+                gap2 = abs(x1 - xx1)
+                if(gap2 > gap1):
+                    horizontal[0] = lines[idx][0]
         point = np.empty((0,2))
         if(len(vertical) == 2 and len(horizontal) == 1):
             point = np.append(point,get_crosspt(x1,y1,x2,y2,vertical[0][0],vertical[0][1],vertical[0][2],vertical[0][3]),0)
@@ -124,16 +128,24 @@ for index in range(0, len(lines)):
             point = np.append(point,get_crosspt(x1,y1,x2,y2,vertical[1][0],vertical[1][1],vertical[1][2],vertical[1][3]),0) 
             if(len(point) == 4):
                 
-                if(distance(point[0][0],point[0][1],point[1][0],point[1][0]) * distance(point[1][0],point[1][1],point[2][0],point[2][0]) > Max):
-                    Max = distance(point[0][0],point[0][1],point[1][0],point[1][0]) * distance(point[1][0],point[1][1],point[2][0],point[2][0])
+                if(distance(point[0][0],point[0][1],point[1][0],point[1][1]) * distance(point[1][0],point[1][1],point[2][0],point[2][1]) > Max):
+                    Max = distance(point[0][0],point[0][1],point[1][0],point[1][1]) * distance(point[1][0],point[1][1],point[2][0],point[2][1])
                     max_set = point
                     
                    
 
 
-    cv2.line(image, (x1,y1), (x2, y2), (0,255,0), 1) #연장 안하고 그리기
+    # cv2.line(image, (x1,y1), (x2, y2), (255,0,0), 5) #연장 안하고 그리기
+
+image2 = image.copy()
+
+for dot in max_set:
+    x = int(dot[0])
+    y = int(dot[1])
+    cv2.line(image2, (x,y), (x,y), (0,255,0), 10)
     
-cv2.imshow("line", image)    
+    
+cv2.imshow("line", image2)    
 approx=transfer.transfer(max_set) # 점 4개의 좌표 가져감 
 print(max_set)
 pts=np.float32([[0,0],[800,0],[800,800],[0,800]])  #map to 800*800 target window
