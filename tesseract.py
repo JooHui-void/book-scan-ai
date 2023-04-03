@@ -20,6 +20,8 @@ import numpy as np
 import transfer
 import math
 import adaptive
+from pytesseract import *
+from PIL import Image
 
 def distance(x1,y1,x2,y2):
     return math.sqrt((x2-x1)**2 + (y2-y1)**2)
@@ -101,9 +103,8 @@ for index in range(0, len(lines)):
     
     vertical = np.empty((0,4))
     horizontal = np.empty((0,4))
-    print(x1,y1,x2,y2)
+    #print(x1,y1,x2,y2)
 
-    
     for idx in range(index+1, len(lines)):
         xx1, yy1, xx2, yy2 = lines[idx][0]
         rad2 = math.atan2(xx2-xx1, yy2-yy1)
@@ -146,14 +147,14 @@ for dot in max_set:
     cv2.line(image2, (x,y), (x,y), (0,255,0), 10)
     
     
-cv2.imshow("line", image2)    
+# cv2.imshow("line", image2)    
 approx=transfer.transfer(max_set) # 점 4개의 좌표 가져감 
-print(max_set)
+# print(max_set)
 pts=np.float32([[0,0],[800,0],[800,800],[0,800]])  #map to 800*800 target window
 
 op=cv2.getPerspectiveTransform(approx,pts)  #get the top or bird eye view effect
 dst=cv2.warpPerspective(orig,op,(800,800))
-cv2.imshow("Scan",dst)
+# cv2.imshow("Scan",dst)
 dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY) 
 dst_gray = adaptive.adaptive(dst_gray)
 cv2.imshow("Scanned",dst_gray)
@@ -178,8 +179,10 @@ for line in lines:
 
 
 
-cv2.imshow("Canny",image)
+# cv2.imshow("Canny",image)
 
-
+rgb_img = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+# text = pytesseract.image_to_string(rgb_img, lang = 'kor+eng')
+print(text)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
