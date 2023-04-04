@@ -59,7 +59,7 @@ def get_crosspt(x11,y11, x12,y12, x21,y21, x22,y22):
     return result
 
 
-image=cv2.imread("image4.jpg") 
+image=cv2.imread("image_distort.jpg") 
 image=cv2.resize(image,(1300,800)) #resizing
 h, w = image.shape[:2]
 orig=image.copy()
@@ -113,11 +113,11 @@ for index in range(0, len(lines)):
         rad2 = math.atan2(xx2-xx1, yy2-yy1)
         rad2 = math.degrees(rad2)
         # print("---",xx1,yy1,xx2,yy1,"=>",abs(rad2-rad))
-        if(abs(rad2 - rad)<110 and abs(rad2 - rad) > 70): # 수직 선분 
+        if(abs(rad2 - rad)<115 and abs(rad2 - rad) > 65): # 수직 선분 
             if(len(vertical) <2 ):
                 vertical = np.append(vertical,lines[idx], 0)
                
-        elif(abs(rad2 - rad)<10 or abs(rad2 - rad) >170): # 평행 선분 
+        elif(abs(rad2 - rad)<15 or abs(rad2 - rad) >165): # 평행 선분 
             if(len(horizontal) ==0 ):
                 horizontal = np.append(horizontal,lines[idx], 0)
             else:  # 이미 들어온 선분과 비교
@@ -140,7 +140,7 @@ for index in range(0, len(lines)):
                    
 
 
-    # cv2.line(image, (x1,y1), (x2, y2), (255,0,0), 5) #연장 안하고 그리기
+    cv2.line(image, (x1,y1), (x2, y2), (255,0,0), 5) #연장 안하고 그리기
 
 image2 = image.copy()
 
@@ -150,7 +150,7 @@ for dot in max_set:
     cv2.line(image2, (x,y), (x,y), (0,255,0), 10)
     
     
-# cv2.imshow("line", image2)    
+cv2.imshow("line", image2)    
 approx=transfer.transfer(max_set) # 점 4개의 좌표 가져감 
 # print(max_set)
 pts=np.float32([[0,0],[800,0],[800,800],[0,800]])  #map to 800*800 target window
@@ -160,7 +160,7 @@ dst=cv2.warpPerspective(orig,op,(800,800))
 # cv2.imshow("Scan",dst)
 dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY) 
 dst_gray = adaptive.adaptive(dst_gray)
-dst_gray = 255-dst_gray
+# dst_gray = 255-dst_gray
 cv2.imshow("Scanned",dst_gray)
 ###
        
@@ -187,7 +187,7 @@ for line in lines:
 
 # rgb_img = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
 # cv2.imshow('result',rgb_img)
-text = pytesseract.image_to_string(dst_gray, lang = 'kor+eng')
+text = pytesseract.image_to_string(dst_gray, lang = 'kor')
 print(text)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
