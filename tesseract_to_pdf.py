@@ -7,7 +7,13 @@ import subprocess
 import re
 import time
 import os
+import io
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 from PyPDF2 import PdfFileReader, PdfWriter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+pdfmetrics.registerFont(UnicodeCIDFont('HYGothic-Medium'))
 
 GPHOTO = 'gphoto2'
 VIEW_FILE = 'view.html'
@@ -25,6 +31,11 @@ from pytesseract import *
 from PIL import Image
 
 pytesseract.tesseract_cmd = R'C:\Program Files\Tesseract-OCR\tesseract'
+
+from pathlib import Path
+from typing import Union, Literal, List
+
+from PyPDF2 import PdfWriter, PdfReader
 
 
 def distance(x1,y1,x2,y2):
@@ -189,15 +200,61 @@ save_path = './maked/terreract.pdf'
 # rgb_img = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
 # cv2.imshow('result',rgb_img)
 text = pytesseract.image_to_data(dst_gray, lang = 'kor+eng',output_type = Output.DICT)
+text_real = pytesseract.image_to_string(dst_gray, lang = 'kor+eng')
 print(text)
+# print(text['level'][0])
+
+########################## pdf 에 글자 삽입하기 
+
 pdf_writer = PdfWriter() # 빈 pdf 만들기
 pdf_writer.add_blank_page(800,800) # PageObject 리턴
 
-
-
+# pdf_writer.pages[0].add_named_destination_array("hello")
+pdf_writer.add_outline_item(text_real,0)
 ## 저장
 with open(save_path, 'wb') as f:
     pdf_writer.write(f)
+    
+packet = io.BytesIO()
+can = canvas.Canvas(packet, pagesize=(800,800))
+tmp_y = 0
+tmp_h = 0
+for i in range(0, len(text['level'])):
+    if text['conf'][i] > 20:
+        x = text['left'][i]
+        y = text['top'][i]
+        w = text['width'][i]
+        h = text['height'][i]
+        print(y,h,text['text'][i])
+        ver_pos = 800-y-h
+        #### ver_pos와 바로 앞글자의 ver_pos 차가 h/2보다 작다면 같은 라인, 같은 사이즈 
+        #### 저장해놓은 tmp_y와 tmp_h를 사용한다
+        if(i != 0 and abs(ver_pos -(800- text['top'][i-1]-text['height'][i-1])) < 4 and abs(text['height'][i-1]-h)<3):
+            print("a")
+        else:
+            tmp_y = ver_pos
+            tmp_h = h
+        can.setFont('HYGothic-Medium', tmp_h)
+        can.drawString(x, tmp_y, text['text'][i])
+        
+can.save()
 
+#move to the beginning of the StringIO buffer
+packet.seek(0)
+
+# create a new PDF with Reportlab
+new_pdf = PdfReader(packet)
+# read your existing PDF
+existing_pdf = PdfReader(open(save_path, "rb"))
+output = PdfWriter()
+# add the "watermark" (which is the new pdf) on the existing page
+page = existing_pdf.pages[0]
+page.merge_page(new_pdf.pages[0])
+output.add_page(page)
+# finally, write "output" to a real file
+output_stream = open("./maked/destination.pdf", "wb")
+output.write(output_stream)
+output_stream.close()
+##########################
 cv2.waitKey(0)
 cv2.destroyAllWindows()
