@@ -29,6 +29,7 @@ import adaptive
 from pytesseract import Output
 from pytesseract import *
 from PIL import Image
+from rotation import rotate
 
 pytesseract.tesseract_cmd = R'C:\Program Files\Tesseract-OCR\tesseract'
 
@@ -162,7 +163,7 @@ for dot in max_set:
     cv2.line(image2, (x,y), (x,y), (0,255,0), 10)
     
     
-cv2.imshow("line", image2)    
+# cv2.imshow("line", image2)    
 approx=transfer.transfer(max_set) # 점 4개의 좌표 가져감 
 # print(max_set)
 pts=np.float32([[0,0],[800,0],[800,800],[0,800]])  #map to 800*800 target window
@@ -174,11 +175,9 @@ dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
 dst_gray = adaptive.adaptive(dst_gray)
 # dst_gray = 255-dst_gray
 cv2.imshow("Scanned",dst_gray)
+rotate(dst_gray)
 ###
-       
-    
-    
-               
+      
 for line in lines:
     # 검출된 선 그리기 ---
     # print(line[0])
@@ -227,13 +226,15 @@ for i in range(0, len(text['level'])):
         h = text['height'][i]
         print(y,h,text['text'][i])
         ver_pos = 800-y-h
-        #### ver_pos와 바로 앞글자의 ver_pos 차가 h/2보다 작다면 같은 라인, 같은 사이즈 
-        #### 저장해놓은 tmp_y와 tmp_h를 사용한다
-        if(i != 0 and abs(ver_pos -(800- text['top'][i-1]-text['height'][i-1])) < 4 and abs(text['height'][i-1]-h)<3):
-            print("a")
-        else:
-            tmp_y = ver_pos
-            tmp_h = h
+        # #### ver_pos와 바로 앞글자의 ver_pos 차가 h/2보다 작다면 같은 라인, 같은 사이즈 
+        # #### 저장해놓은 tmp_y와 tmp_h를 사용한다
+        # if(i != 0 and abs(ver_pos -(800- text['top'][i-1]-text['height'][i-1])) < 4 and abs(text['height'][i-1]-h)<h/2):
+        #     print("a")
+        # else:
+        #     tmp_y = ver_pos
+        #     tmp_h = h
+        tmp_y = ver_pos
+        tmp_h = h
         can.setFont('HYGothic-Medium', tmp_h)
         can.drawString(x, tmp_y, text['text'][i])
         
