@@ -175,7 +175,8 @@ dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY)
 dst_gray = adaptive.adaptive(dst_gray)
 # dst_gray = 255-dst_gray
 cv2.imshow("Scanned",dst_gray)
-rotate(dst_gray)
+cv2.imwrite("test.jpg", dst_gray)
+# rotate(dst_gray)
 ###
       
 for line in lines:
