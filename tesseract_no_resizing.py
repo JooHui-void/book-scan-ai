@@ -166,18 +166,19 @@ for dot in max_set:
 # cv2.imshow("line", image2)    
 approx=transfer.transfer(max_set) # 점 4개의 좌표 가져감 
 # print(max_set)
-pts=np.float32([[0,0],[800,0],[800,1000],[0,1000]])  #map to 800*800 target window
+# pts=np.float32([[0,0],[800,0],[800,800],[0,800]])  #map to 800*800 target window
 
-op=cv2.getPerspectiveTransform(approx,pts)  #get the top or bird eye view effect
-dst=cv2.warpPerspective(orig,op,(800,1000))
+# op=cv2.getPerspectiveTransform(approx,pts)  #get the top or bird eye view effect
+# dst=cv2.warpPerspective(orig,op,(800,800))
 # cv2.imshow("Scan",dst)
+
+print(dst)
 dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY) 
 dst_gray = adaptive.adaptive(dst_gray)
 # dst_gray = 255-dst_gray
 cv2.imshow("Scanned",dst_gray)
 cv2.imwrite("test.jpg", dst_gray)
 # rotate(dst_gray)
-
 ###
       
 for line in lines:
@@ -202,13 +203,13 @@ save_path = './maked/terreract.pdf'
 # cv2.imshow('result',rgb_img)
 text = pytesseract.image_to_data(dst_gray, lang = 'kor+eng',output_type = Output.DICT)
 text_real = pytesseract.image_to_string(dst_gray, lang = 'kor+eng')
-# print(text)
+print(text)
 # print(text['level'][0])
 
 ########################## pdf 에 글자 삽입하기 
 
 pdf_writer = PdfWriter() # 빈 pdf 만들기
-pdf_writer.add_blank_page(800,1000) # PageObject 리턴
+pdf_writer.add_blank_page(800,800) # PageObject 리턴
 
 # pdf_writer.pages[0].add_named_destination_array("hello")
 pdf_writer.add_outline_item(text_real,0)
@@ -217,17 +218,17 @@ with open(save_path, 'wb') as f:
     pdf_writer.write(f)
     
 packet = io.BytesIO()
-can = canvas.Canvas(packet, pagesize=(800,1000))
+can = canvas.Canvas(packet, pagesize=(800,800))
 tmp_y = 0
 tmp_h = 0
 for i in range(0, len(text['level'])):
-    if text['conf'][i] > 5:
+    if text['conf'][i] > 20:
         x = text['left'][i]
         y = text['top'][i]
         w = text['width'][i]
         h = text['height'][i]
         print(y,h,text['text'][i])
-        ver_pos = 1000-y-h
+        ver_pos = 800-y-h
         # #### ver_pos와 바로 앞글자의 ver_pos 차가 h/2보다 작다면 같은 라인, 같은 사이즈 
         # #### 저장해놓은 tmp_y와 tmp_h를 사용한다
         # if(i != 0 and abs(ver_pos -(800- text['top'][i-1]-text['height'][i-1])) < 4 and abs(text['height'][i-1]-h)<h/2):
@@ -235,14 +236,8 @@ for i in range(0, len(text['level'])):
         # else:
         #     tmp_y = ver_pos
         #     tmp_h = h
-        
         tmp_y = ver_pos
         tmp_h = h
-        if(i !=0 and i != len(text['level']) -1):
-            
-            if(abs(text['height'][i-1] - text['height'][i+1]) <3 and abs(text['height'][i-1] - text['height'][i])>5):
-                print("111")
-                tmp_h = text['height'][i-1]
         can.setFont('HYGothic-Medium', tmp_h)
         can.drawString(x, tmp_y, text['text'][i])
         
