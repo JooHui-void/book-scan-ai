@@ -73,7 +73,7 @@ def get_crosspt(x11,y11, x12,y12, x21,y21, x22,y22):
 
 
 image=cv2.imread("test2.jpg") 
-image=cv2.resize(image,(1300,800)) #resizing
+image=cv2.resize(image,(1300,800),Image.ANTIALIAS) #resizing
 h, w = image.shape[:2]
 orig=image.copy()
 
@@ -172,6 +172,7 @@ op=cv2.getPerspectiveTransform(approx,pts)  #get the top or bird eye view effect
 dst=cv2.warpPerspective(orig,op,(800,1000))
 # cv2.imshow("Scan",dst)
 dst_gray=cv2.cvtColor(dst,cv2.COLOR_BGR2GRAY) 
+cv2.imwrite("test_gray.jpg", dst_gray)
 dst_gray = adaptive.adaptive(dst_gray)
 # dst_gray = 255-dst_gray
 cv2.imshow("Scanned",dst_gray)
